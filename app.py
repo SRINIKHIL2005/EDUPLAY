@@ -1,14 +1,15 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 import re
 
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key'  # Change this to a secure secret key
+app.secret_key = os.getenv('SECRET_KEY', 'your-default-secret-key')  # Change this to a secure secret key
 
 # MongoDB connection
 client = MongoClient('mongodb://localhost:27017/')
@@ -38,7 +39,7 @@ def auth():
         flash('Invalid username or password')
         return redirect(url_for('login'))
 
-@app.route("/like", methods=['GET', 'POST'])
+@app.route("/like", methods=['GET', 'POST'])  
 def signup():
     if request.method == 'POST':
         username = request.form.get('username')
@@ -76,7 +77,7 @@ def signup():
         flash('Registration successful! Please login.')
         return redirect(url_for('login'))
 
-    return render_template('like.html')
+    return render_template('like.html')  # Updated the template name
 
 @app.route('/dashboard')
 def dashboard():
@@ -85,6 +86,23 @@ def dashboard():
 @app.route('/chatbot', methods=['GET', 'POST'])
 def chatbot():
     return render_template('chatbot.html')
+
+@app.route('/api/gemini', methods=['POST'])  # Properly linked the route
+def gemini_api():
+    genai.configure(api_key=os.getenv('AIzaSyAztzunEBlRUIcYQMYHIBapT6LNpMm4gx0'))
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    
+    try:
+        data = request.json
+        message = data.get('message')
+        if not message:
+            return jsonify({'error': 'No message provided'}), 400
+
+        # Generate response using Gemini AI
+        response = model.generate_content(message)
+        return jsonify({'response': response.text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
