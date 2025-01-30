@@ -500,7 +500,7 @@
         }
 
         async function getGeminiResponse(message) {
-    const apiKey = 'AIzaSyAYBRFoENAEWshw62SpqkL02YtkgQncn-Q';
+    const apiKey = 'AIzaSyAztzunEBlRUIcYQMYHIBapT6LNpMm4gx0';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;            
     const maxRetries = 3;
     let attempt = 0;
@@ -557,6 +557,25 @@
 
             synth.speak(utterance);
         }
+        function sendMessage() {
+            const userInput = document.getElementById('userInput').value.trim(); // Get user input and trim whitespace
+            if (userInput === '') return; // Prevent sending empty messages
+        
+            // Display user message in chat box
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML += `<div class="message user-message">${userInput}</div>`;
+        
+            // Call the AI response function
+            getGeminiResponse(userInput).then(response => {
+                chatBox.innerHTML += `<div class="message bot-message">${response}</div>`;
+                speak(response); // Optional: Speak the response
+            });
+        
+            // Clear input field
+            document.getElementById('userInput').value = '';
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom of the chat box
+        }
+        
 
         // Math Game
         function generateMathProblem() {
